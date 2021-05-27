@@ -23,6 +23,11 @@ namespace obe::Time
          */
         void start();
         /**
+         * \brief Check if the Chronometer has started
+         * \return true if Chronometer has started, false otherwise
+         */
+        bool started() const;
+        /**
          * \brief Stops the Chronometer
          */
         void stop();

@@ -16,6 +16,7 @@ namespace obe::Time::Bindings
             = TimeNamespace.new_usertype<obe::Time::Chronometer>(
                 "Chronometer", sol::call_constructor, sol::default_constructor);
         bindChronometer["start"] = &obe::Time::Chronometer::start;
+        bindChronometer["started"] = &obe::Time::Chronometer::started;
         bindChronometer["stop"] = &obe::Time::Chronometer::stop;
         bindChronometer["reset"] = &obe::Time::Chronometer::reset;
         bindChronometer["getTime"] = &obe::Time::Chronometer::getTime;
