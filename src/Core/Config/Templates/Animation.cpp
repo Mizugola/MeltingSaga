@@ -15,6 +15,11 @@ namespace obe::Config::Templates
             = vili::object { { "command", set_animation_command.data() },
                   { "animation", "" } };
         state.push_template(set_animation_command.data(), set_animation);
+
+        // AnimationPlayMode enum
+        state.push_template("OneTime", "OneTime");
+        state.push_template("Loop", "Loop");
+        state.push_template("Force", "Force");
         return state;
     }
 }

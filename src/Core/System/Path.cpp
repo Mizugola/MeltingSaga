@@ -8,7 +8,8 @@ namespace obe::System
         return base + ((!base.empty()) ? "/" : "") + path;
     }
 
-    std::pair<std::string, std::string> splitPathAndPrefix(const std::string& path)
+    std::pair<std::string, std::string> splitPathAndPrefix(
+        const std::string& path, bool warnOnMissingPrefix)
     {
         if (const auto prefixPos = path.find("://"); prefixPos != std::string::npos)
         {
@@ -20,7 +21,10 @@ namespace obe::System
             return std::make_pair(path.substr(prefixPos + 3), prefix);
         }
 
-        Debug::Log->warn("Path '{}' has no prefix, defaulting to '*://'", path);
+        if (warnOnMissingPrefix)
+        {
+            Debug::Log->warn("Path '{}' has no prefix, defaulting to '*://'", path);
+        }
         return std::make_pair(path, "");
     }
 
@@ -141,7 +145,6 @@ namespace obe::System
         : m_mounts(MountablePath::Paths())
     {
         std::tie(m_path, m_prefix) = splitPathAndPrefix(path.data());
-        
     }
 
     Path::Path(std::string_view prefix, std::string_view path) : m_mounts(MountablePath::Paths())

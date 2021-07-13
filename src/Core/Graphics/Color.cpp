@@ -247,13 +247,6 @@ namespace obe::Graphics
         this->fromString(nameOrHex);
     }
 
-    Color::Color(const Color& color)
-    {
-        r = color.r;
-        g = color.g;
-        b = color.b;
-        a = color.a;
-    }
 
     Color::Color(const sf::Color& color)
     {
@@ -358,6 +351,30 @@ namespace obe::Graphics
     {
         return (static_cast<int>(r) << 24) + (static_cast<int>(g) << 16)
             + (static_cast<int>(b) << 8) + (a);
+    }
+
+    std::string Color::toHex() const
+    {
+        std::stringstream stream;
+        stream << "#" << std::hex << r << g << b;
+        if (a != 1)
+        {
+            stream << a;
+        }
+        return stream.str();
+    }
+
+    std::string Color::toName() const
+    {
+        for (const auto& color : ColorNames)
+        {
+            if (color.second.r == r && color.second.g == g && color.second.b == b)
+            {
+                return color.first;
+            }
+        }
+
+        return "";
     }
 
     void Color::fromHex(std::string hexCode)

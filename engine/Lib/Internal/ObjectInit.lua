@@ -1,8 +1,5 @@
 __ENV_ID = __OBJECT_TYPE .. "." .. __OBJECT_ID;
-Object = {
-    type = __OBJECT_TYPE;
-    id = __OBJECT_ID;
-};
+Object = {type = __OBJECT_TYPE, id = __OBJECT_ID};
 
 __INIT_ARG_TABLE = {};
 
@@ -19,19 +16,14 @@ function ObjectInit()
             table.insert(Lua_Func_CallArgs, __nil_table);
         end
     end
-    print("Prepare to call LocalInit");
-    if Local.Init then
-        print("Calling it");
-        Local.Init(ArgMirror.Unpack(Lua_Func_CallArgs));
-    end
-    print("Dayum")
+    if Local.Init then Local.Init(ArgMirror.Unpack(Lua_Func_CallArgs)); end
 end
 
 -- Engine Events
 Event = LuaCore.EventNamespaceHooks(Object.type .. "." .. Object.id, "Event");
 
 function ObjectInitFromLua(argtable)
-    local argt = argtable or {};
+    argtable = argtable or {};
     __INIT_ARG_TABLE = argtable;
     This:initialize();
     return Object;
@@ -47,10 +39,6 @@ end
 
 function ObjectDelete()
     getmetatable(Event).__clean(Event);
-    for _, scheduler in pairs(__ENV_SCHEDULERS) do
-        scheduler:stop();
-    end
-    if Local.Delete then
-        Local.Delete();
-    end
+    for _, scheduler in pairs(__ENV_SCHEDULERS) do scheduler:stop(); end
+    if Local.Delete then Local.Delete(); end
 end

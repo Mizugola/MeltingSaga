@@ -17,4 +17,6 @@ namespace obe::Utils::File::Bindings
     void LoadFunctionDeleteDirectory(sol::state_view state);
     void LoadFunctionGetCurrentDirectory(sol::state_view state);
     void LoadFunctionSeparator(sol::state_view state);
+    void LoadFunctionGetExecutableDirectory(sol::state_view state);
+    void LoadFunctionGetExecutablePath(sol::state_view state);
 };

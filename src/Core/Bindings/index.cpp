@@ -616,6 +616,8 @@ namespace obe::Bindings
         obe::Utils::File::Bindings::LoadFunctionDeleteDirectory(state);
         obe::Utils::File::Bindings::LoadFunctionGetCurrentDirectory(state);
         obe::Utils::File::Bindings::LoadFunctionSeparator(state);
+        obe::Utils::File::Bindings::LoadFunctionGetExecutableDirectory(state);
+        obe::Utils::File::Bindings::LoadFunctionGetExecutablePath(state);
 
         obe::Utils::Math::Bindings::LoadFunctionRandint(state);
         obe::Utils::Math::Bindings::LoadFunctionRandfloat(state);

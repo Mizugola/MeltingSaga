@@ -3,37 +3,114 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-jobs:
-- job: macOS
-  pool:
-    vmImage: 'macOS-10.14'
-  steps:
-  - script: brew install sfml
-  - script: mkdir build
-  - script: cd build && cmake -DBUILD_TESTS=ON ..
-  - script: cd build && make -j6
-  - script: cd build && ./tests/ObEngineTests
- 
-- job: Windows
-  variables:
-    MSVC_DEFAULT_OPTIONS: ON
-    SFML_DIR: D:\a\1\s\Libraries\SFML-2.5.1
-    Qt5_DIR: C:\Qt\5.11.1\msvc2017_64\lib\cmake\Qt5
-  pool:
-    vmImage: 'windows-2019'
-  steps:
-  - task: DownloadFile@1
-    inputs:
-      FileUrl: 'https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15-64-bit.zip'
-      DestinationFolder: '$(System.DefaultWorkingDirectory)'
-      requireAuthentication: false
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: 'SFML-2.5.1-windows-vc15-64-bit.zip'
-      destinationFolder: 'Libraries'
-      cleanDestinationFolder: true
-  - script: cmake -G "Visual Studio 16 2019" -A x64 -DSFML_DIR=%SFML_DIR% -DBUILD_TESTS=ON .
-  - script: dir
-  - task: VSBuild@1
-    inputs:
-      solution: '**\*.sln'
+strategy:
+  matrix:
+    linux-16.04:
+      imageName: 'ubuntu-16.04'
+    linux-18.04:
+      imageName: 'ubuntu-18.04'
+    linux-latest:
+      imageName: 'ubuntu-latest'
+    mac:
+      imageName: 'macos-10.15'
+    windows:
+      imageName: 'windows-2019'
+
+variables:
+  MSVC_DEFAULT_OPTIONS: ON
+  SFML_DIR: D:\a\1\s\Libraries\SFML-2.5.1
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+
+- task: DownloadFile@1
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  inputs:
+    FileUrl: 'https://www.sfml-dev.org/files/SFML-2.5.1-windows-vc15-64-bit.zip'
+    DestinationFolder: '$(System.DefaultWorkingDirectory)'
+    requireAuthentication: false
+  displayName: "[Windows] Download SFML file"
+
+- task: ExtractFiles@1
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  inputs:
+    archiveFilePatterns: 'SFML-2.5.1-windows-vc15-64-bit.zip'
+    destinationFolder: 'Libraries'
+    cleanDestinationFolder: true
+  displayName: "[Windows] Extract SFML file"
+- script: |
+    brew install sfml
+  condition: eq( variables['Agent.OS'], 'Darwin' )
+  displayName: "[MacOs] Install packages and build."
+- bash: |
+    sudo apt update -qq && sudo apt-get install build-essential \
+    checkinstall \
+    libasound2-dev \
+    libudev-dev \
+    libx11-dev \
+    libxrandr-dev \
+    libxi-dev \
+    mesa-common-dev \
+    xorg-dev \
+    freeglut3-dev \
+    g++-7 \
+    libfreetype6-dev \
+    libgl1-mesa-dev \
+    libflac-dev \
+    libogg-dev \
+    libvorbis-dev \
+    libvorbisenc2 \
+    libvorbisfile3 \
+    libopenal-dev \
+    libpthread-stubs0-dev \
+    libstdc++6 \
+    libc6 \
+    libgcc1 \
+    libglew-dev \
+    libgpgme11-dev \
+    -yq
+    sudo update-alternatives \
+    --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+    --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
+    --slave /usr/bin/gcov gcov /usr/bin/gcov-7 \
+    --slave /usr/bin/gcov-tool gcov-tool /usr/bin/gcov-tool-7 \
+    --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-7 \
+    --slave /usr/bin/gcc-nm gcc-nm /usr/bin/gcc-nm-7 \
+    --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-7
+  displayName: "[Linux] Install required packages"
+  condition: eq( variables['Agent.OS'], 'Linux' )
+
+- script: |
+    wget -nv https://www.sfml-dev.org/files/SFML-2.5.1-sources.zip
+    unzip -qq SFML-2.5.1-sources.zip
+    mkdir -p SFML-2.5.1/build/
+    cd SFML-2.5.1/build
+    /usr/local/bin/cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=TRUE .. > /dev/null
+    make -j6 > /dev/null
+    sudo make install > /dev/null
+    sudo ldconfig
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  displayName: "[Linux] Download and install SFML"
+- script: |
+    mkdir $(System.DefaultWorkingDirectory)/build
+    cd $(System.DefaultWorkingDirectory)/build
+    cmake -DBUILD_TESTS=ON ..
+    make -j6
+  condition: or(eq( variables['Agent.OS'], 'Linux' ), eq( variables['Agent.OS'], 'Darwin' ))
+  displayName: "cmake build"
+- script: |
+    cd $(System.DefaultWorkingDirectory)/build
+    ./tests/ObEngineTests
+  condition: or(eq( variables['Agent.OS'], 'Linux' ), eq( variables['Agent.OS'], 'Darwin' ))
+  displayName: "Run tests"
+
+- script: cmake -G "Visual Studio 16 2019" -A x64 -DSFML_DIR=%SFML_DIR% -DBUILD_TESTS=ON .
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: "[Windows] Cmake"
+- task: VSBuild@1
+  inputs:
+    solution: '**\*.sln'
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: "[Windows] VS"

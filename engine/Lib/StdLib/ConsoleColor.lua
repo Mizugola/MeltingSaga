@@ -1,14 +1,10 @@
 local Color = {};
 
 function Color.print(textTable, indent)
-    if type(textTable) == "string" then
-        textTable = {{text = textTable}};
-    end
+    if type(textTable) == "string" then textTable = {{text = textTable}}; end
     local indentString = "";
     if indent ~= nil then
-        for i = 0, indent - 1 do
-            indentString = indentString .. "    ";
-        end
+        for i = 0, indent - 1 do indentString = indentString .. "    "; end
     end
     local allTexts = {};
     local allColors = {};
@@ -21,11 +17,12 @@ function Color.print(textTable, indent)
         else
             cText = v.text;
         end
-        table.insert(allTexts, SFML.WString(cText));
+        table.insert(allTexts, cText);
         if v.color ~= nil then
-            table.insert(allColors, SFML.Color(v.color[1], v.color[2], v.color[3]));
+            table.insert(allColors,
+                         obe.Graphics.Color(v.color[1], v.color[2], v.color[3]));
         else
-            table.insert(allColors, SFML.Color.White);
+            table.insert(allColors, obe.Graphics.Color.White);
         end
     end
     _term_display(allTexts, allColors);

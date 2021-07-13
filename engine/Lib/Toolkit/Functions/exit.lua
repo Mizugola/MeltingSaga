@@ -1,13 +1,14 @@
 local Route = require("Lib/Toolkit/Route");
 
+local Commands = {};
+
+function Commands.exit()
+    _term_close();
+end
+
 return {
-    Functions = {
-        exit = function()
-            _term_close();
-        end
-    },
     Routes = {
-        Route.Call("exit");
+        Route.Call(Commands.exit);
         Route.Help("Exits the Toolkit Console");
     }
 };

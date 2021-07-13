@@ -2,9 +2,9 @@ local Color = require("Lib/StdLib/ConsoleColor");
 local Route = require("Lib/Toolkit/Route");
 local Style = require("Lib/Toolkit/Stylesheet")
 
-local Functions = {};
+local Commands = {};
 
-function Functions.create(objectName, components)
+function Commands.create(objectName, components)
     components = components:upper();
     local currentWs = obe.Path.Paths()[1].basePath;
     local haveAnimator = false;
@@ -89,7 +89,7 @@ function Functions.create(objectName, components)
     }, 1);
 end
 
-function Functions.list()
+function Commands.list()
     local allObjects = obe.Path("Data/GameObjects"):DirectoryListLoader();
     Color.print({
         { text = "Listing all objects : ", color = Style.Execute},
@@ -103,20 +103,19 @@ function Functions.list()
 end
 
 return {
-    Functions = Functions,
     Routes = {
         Route.Help("Commands to work with GameObjects");
         create = Route.Node {
             Route.Help("Creates a new GameObject");
             objectName = Route.Arg {
                 components = Route.Arg {
-                    Route.Call("create");
+                    Route.Call(Commands.create);
                 };
             };
         };
         list = Route.Node {
             Route.Help("List all existing GameObjects");
-            Route.Call("list");
+            Route.Call(Commands.list);
         };
     }
 };

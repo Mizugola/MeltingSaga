@@ -29,16 +29,42 @@ namespace obe::System
 
     void MountablePath::LoadMountFile()
     {
-        MountablePath::MountedPaths.clear();
-        MountablePath::MountedPaths.push_back(
-            MountablePath(MountablePathType::Path, "", "root"));
-        MountablePath::MountedPaths.push_back(
-            MountablePath(MountablePathType::Path, "", "obe", 0, false));
+        MountablePath::UnmountAll();
+
+        MountablePath workingDirectoryPath(MountablePathType::Path, "", "root");
+        MountablePath::Mount(workingDirectoryPath);
+
+        MountablePath enginePath(MountablePathType::Path, "", "obe", 0, false);
+        MountablePath::Mount(enginePath);
+
+        MountablePath executablePath(MountablePathType::Path,
+            Utils::File::getExecutableDirectory(), "exe", 0, false);
+        MountablePath::Mount(executablePath);
+
+        FindResult mountFilePathInCwd
+            = Path("root://Mount.vili").find(obe::System::PathType::File);
+        FindResult mountFilePathInExe
+            = Path("exe://Mount.vili").find(obe::System::PathType::File);
+        if (!mountFilePathInCwd && !mountFilePathInExe)
+        {
+            Debug::Log->info("No Mount.vili file found in either working directory "
+                             "('{}') executable path ('{}')",
+                workingDirectoryPath.basePath, executablePath.basePath);
+            return;
+        }
+
+        FindResult mountFileLocation
+            = (mountFilePathInCwd) ? mountFilePathInCwd : mountFilePathInExe;
+
+        Debug::Log->debug("Found Mount.vili file in '{}'", mountFileLocation.path());
+
+        MountablePath::Unmount(executablePath);
+
         vili::node mountedPaths;
         try
         {
             mountedPaths = vili::parser::from_file(
-                "Mount.vili", Config::Templates::getMountTemplates());
+                mountFileLocation, Config::Templates::getMountTemplates());
         }
         catch (std::exception& e)
         {
@@ -60,7 +86,7 @@ namespace obe::System
             int currentPriority = path.at("priority");
             if (currentType == "Path")
             {
-                auto [pathPrefix, _] = splitPathAndPrefix(currentPath);
+                auto [_, pathPrefix] = splitPathAndPrefix(currentPath, false);
                 if (!pathPrefix.empty())
                 {
                     currentPath
@@ -105,6 +131,11 @@ namespace obe::System
             std::remove_if(MountedPaths.begin(), MountedPaths.end(),
                 [path](MountablePath& mountablePath) { return mountablePath == path; }),
             MountedPaths.end());
+    }
+
+    void MountablePath::UnmountAll()
+    {
+        MountedPaths.clear();
     }
 
     const std::vector<MountablePath>& MountablePath::Paths()

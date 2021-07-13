@@ -91,7 +91,8 @@ namespace obe::Animation::Exceptions
             const std::vector<std::string>& animations, DebugInfo info)
             : Exception("UnknownAnimation", info)
         {
-            this->error("Animator '{}' doesn't have any Animation named '{}'", animatorPath, animation);
+            this->error("Animator '{}' doesn't have any Animation named '{}'",
+                animatorPath, animation);
             this->hint(
                 "Try one of the following animations ({})", fmt::join(animations, ", "));
         }
@@ -138,6 +139,16 @@ namespace obe::Animation::Exceptions
             : Exception("UnknownTargetScaleMode", info)
         {
             this->error("TargetScaleMode '{}' does not exists", targetScaleMode);
+        }
+    };
+
+    class InvalidAnimationFile : public Exception
+    {
+    public:
+        InvalidAnimationFile(std::string_view path, DebugInfo info)
+            : Exception("InvalidAnimationFile", info)
+        {
+            this->error("Error occured while loading Animation file '{}'", path);
         }
     };
 }

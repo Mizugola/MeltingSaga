@@ -30,7 +30,14 @@ set(VILI_SOURCES
 add_library(vili ${VILI_HEADERS} ${VILI_SOURCES})
 
 target_link_libraries(vili fifo_map)
-target_link_libraries(vili fmt)
+
+if(OBE_USE_VCPKG)
+    find_package(fmt CONFIG REQUIRED)
+    target_link_libraries(vili fmt::fmt)
+else()
+    target_link_libraries(vili fmt)
+endif()
+
 target_link_libraries(vili pegtl)
 
 target_include_directories(vili

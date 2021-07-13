@@ -215,6 +215,7 @@ namespace obe::Script
             m_sprite = &scene.createSprite(m_id, false);
             m_objectNode.addChild(*m_sprite);
             m_sprite->load(obj.at("Sprite"));
+            m_sprite->setParentId(m_id);
             if (m_hasScriptEngine)
                 m_environment["Object"]["Sprite"] = m_sprite;
             scene.reorganizeLayers();
@@ -255,6 +256,7 @@ namespace obe::Script
             m_collider = &scene.createCollider(m_id, false);
             m_objectNode.addChild(*m_collider);
             m_collider->load(obj.at("Collider"));
+            m_collider->setParentId(m_id);
 
             if (m_hasScriptEngine)
                 m_environment["Object"]["Collider"] = m_collider;

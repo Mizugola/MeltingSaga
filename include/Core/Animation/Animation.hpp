@@ -91,6 +91,7 @@ namespace obe::Animation
         void executeInstruction();
         void updateCurrentGroup();
         void setActiveAnimationGroup(const std::string& groupName);
+
     public:
         AnimationState(const Animation& parent);
         void load();
@@ -163,7 +164,7 @@ namespace obe::Animation
         Time::TimeUnit m_delay = 0;
 
         std::vector<vili::node> m_code;
-        
+
         std::vector<Graphics::Texture> m_textures;
 
         AnimationPlayMode m_playMode = AnimationPlayMode::OneTime;
@@ -177,6 +178,7 @@ namespace obe::Animation
         void loadCode(const vili::node& code);
 
         friend class AnimationState;
+
     public:
         Animation();
         /**

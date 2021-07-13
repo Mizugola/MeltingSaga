@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Clean previous execution
       run: rm -rf build; rm -rf SFML
     - name: Create build directory
@@ -43,6 +45,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Create deps directory
       run: mkdir deps
     - name: Download pre-built SFML
@@ -67,6 +71,8 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Install SFML
       run: brew install sfml
     - name: Create build directory

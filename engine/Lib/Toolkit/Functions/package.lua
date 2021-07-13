@@ -1,9 +1,10 @@
 local Color = require("Lib/StdLib/ConsoleColor");
 local Route = require("Lib/Toolkit/Route");
 local Style = require("Lib/Toolkit/Stylesheet");
+
 local Package = obe.Package;
 
-local Functions = {};
+local Commands = {};
 
 function getPackageList()
     local parser = Vili.ViliParser.new();
@@ -27,7 +28,7 @@ function getUninstalledPackageList()
     return opaqueFiles;
 end
 
-function Functions.install(packageName)
+function Commands.install(packageName)
     Color.print({
             { text = "Installing Package '", color = Style.Execute},
             { text = packageName, color = Style.Package},
@@ -54,7 +55,7 @@ function Functions.install(packageName)
     end
 end
 
-function Functions.mount(packageName)
+function Commands.mount(packageName)
     Color.print({
         { text = "Mounting Package '", color = Style.Execute},
         { text = packageName, color = Style.Package},
@@ -77,7 +78,7 @@ function Functions.mount(packageName)
     end
 end
 
-function Functions.list()
+function Commands.list()
     local allPackages = getPackageList();
     Color.print({
         { text = "All Registered Packages : ", color = Style.Execute}
@@ -91,14 +92,13 @@ function Functions.list()
 end
 
 return {
-    Functions = Functions,
     Routes = {
         Route.Help("Commands to work with Packages");
         install = Route.Node {
             Route.Help("Installs a Package");
             packageName = Route.Arg {
                 Route.Help("Name of the .opaque package file you want to install");
-                Route.Call("install");
+                Route.Call(Commands.install);
                 Route.Autocomplete(getUninstalledPackageList);
             };
         };
@@ -106,13 +106,13 @@ return {
             Route.Help("Mount a Package");
             packageName = Route.Arg {
                 Route.Help("Name of the package you want to mount");
-                Route.Call("mount");
+                Route.Call(Commands.mount);
             };
             Route.Autocomplete(getPackageList)
         };
         list = Route.Node {
             Route.Help("Lists all Packages");
-            Route.Call("list");
+            Route.Call(Commands.list);
         }
     }
 };

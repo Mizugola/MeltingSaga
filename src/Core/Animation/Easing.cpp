@@ -52,12 +52,13 @@ namespace obe::Animation::Easing
 
     double OutCubic(double t)
     {
-        return 1 + (--t) * t * t;
+        --t;
+        return 1 + t * t * t;
     }
 
     double InOutCubic(double t)
     {
-        return t < 0.5 ? 4 * t * t * t : 1 + (--t) * (2 * (--t)) * (2 * t);
+        return t < 0.5 ? 4 * t * t * t : 1 + 4 * (t-2) * (t-2) * (t-2);
     }
 
     double InQuart(double t)
@@ -68,7 +69,8 @@ namespace obe::Animation::Easing
 
     double OutQuart(double t)
     {
-        t = (--t) * t;
+        --t;
+        t = t * t;
         return 1 - t * t;
     }
 
@@ -81,7 +83,8 @@ namespace obe::Animation::Easing
         }
         else
         {
-            t = (--t) * t;
+            --t;
+            t = t * t;
             return 1 - 8 * t * t;
         }
     }
@@ -94,7 +97,8 @@ namespace obe::Animation::Easing
 
     double OutQuint(double t)
     {
-        double t2 = (--t) * t;
+        --t;
+        double t2 = t * t;
         return 1 + t * t2 * t2;
     }
 
@@ -108,7 +112,8 @@ namespace obe::Animation::Easing
         }
         else
         {
-            t2 = (--t) * t;
+            --t;
+            t2 = t * t;
             return 1 + 16 * t * t2 * t2;
         }
     }
@@ -164,7 +169,8 @@ namespace obe::Animation::Easing
 
     double OutBack(double t)
     {
-        return 1 + (--t) * t * (2.70158 * t + 1.70158);
+        --t;
+        return 1 + t * t * (2.70158 * t + 1.70158);
     }
 
     double InOutBack(double t)
@@ -175,7 +181,8 @@ namespace obe::Animation::Easing
         }
         else
         {
-            return 1 + (--t) * t * 2 * (7 * t + 2.5);
+            --t;
+            return 1 + t * t * 2 * (7 * t + 2.5);
         }
     }
 

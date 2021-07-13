@@ -7,7 +7,7 @@
 
 namespace obe::System
 {
-    std::pair<std::string, std::string> splitPathAndPrefix(const std::string& path);
+    std::pair<std::string, std::string> splitPathAndPrefix(const std::string& path, bool warnOnMissingPrefix = true);
 
     enum class PathType
     {

@@ -63,4 +63,16 @@ namespace obe::Utils::File::Bindings
         sol::table FileNamespace = state["obe"]["Utils"]["File"].get<sol::table>();
         FileNamespace.set_function("separator", obe::Utils::File::separator);
     }
+    void LoadFunctionGetExecutableDirectory(sol::state_view state)
+    {
+        sol::table FileNamespace = state["obe"]["Utils"]["File"].get<sol::table>();
+        FileNamespace.set_function(
+            "getExecutableDirectory", obe::Utils::File::getExecutableDirectory);
+    }
+    void LoadFunctionGetExecutablePath(sol::state_view state)
+    {
+        sol::table FileNamespace = state["obe"]["Utils"]["File"].get<sol::table>();
+        FileNamespace.set_function(
+            "getExecutablePath", obe::Utils::File::getExecutablePath);
+    }
 };

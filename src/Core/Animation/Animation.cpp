@@ -65,7 +65,6 @@ namespace obe::Animation
         return m_defaultState.getCalledAnimation();
     }
 
-
     std::string Animation::getName() const noexcept
     {
         return m_name;
@@ -89,7 +88,6 @@ namespace obe::Animation
         return m_defaultState.getAnimationGroup(groupName);
     }
 
-
     std::string AnimationState::getCurrentAnimationGroup() const noexcept
     {
         return m_currentGroupName;
@@ -99,7 +97,6 @@ namespace obe::Animation
     {
         return m_defaultState.getCurrentAnimationGroup();
     }
-
 
     std::vector<std::string> Animation::getAllAnimationGroupName() const
     {
@@ -125,7 +122,6 @@ namespace obe::Animation
         return m_defaultState.getStatus();
     }
 
-
     bool AnimationState::isOver() const noexcept
     {
         return m_over;
@@ -140,29 +136,38 @@ namespace obe::Animation
         const System::Path& path, Engine::ResourceManager* resources)
     {
         Debug::Log->debug("<Animation> Loading Animation at {0}", path.toString());
-        vili::node animationConfig
-            = vili::parser::from_file(path.add(path.last() + ".ani.vili").find(),
-                Config::Templates::getAnimationTemplates());
+        const std::string animationConfigFile
+            = path.add(path.last() + ".ani.vili").find();
+        vili::node animationConfig = vili::parser::from_file(
+            animationConfigFile, Config::Templates::getAnimationTemplates());
 
-        vili::validator::validate_tree(Config::Validators::AnimationValidator(), animationConfig);
+        try
+        {
+            vili::validator::validate_tree(
+                Config::Validators::AnimationValidator(), animationConfig);
 
-        // Meta
-        Debug::Log->trace("  <Animation> Loading Meta block");
-        this->loadMeta(animationConfig.at("Meta"));
+            // Meta
+            this->loadMeta(animationConfig.at("Meta"));
+            Debug::Log->trace("  <Animation> Loading Meta block");
 
-        // Images
-        Debug::Log->trace("  <Animation> Loading Images block");
-        this->loadImages(animationConfig.at("Images"), path, resources);
+            // Images
+            this->loadImages(animationConfig.at("Images"), path, resources);
+            Debug::Log->trace("  <Animation> Loading Images block");
 
-        // Groups
-        Debug::Log->trace("  <Animation> Loading Groups block");
-        this->loadGroups(animationConfig.at("Groups"));
+            // Groups
+            Debug::Log->trace("  <Animation> Loading Groups block");
+            this->loadGroups(animationConfig.at("Groups"));
 
-        // Animation Code
-        Debug::Log->trace("  <Animation> Loading Animation block");
-        this->loadCode(animationConfig.at("Animation"));
+            // Animation Code
+            Debug::Log->trace("  <Animation> Loading Animation block");
+            this->loadCode(animationConfig.at("Animation"));
 
-        m_defaultState.load();
+            m_defaultState.load();
+        }
+        catch (const Exception& e)
+        {
+            throw Exceptions::InvalidAnimationFile(animationConfigFile, EXC_INFO).nest(e);
+        }
     }
 
     void AnimationState::executeInstruction()
@@ -175,7 +180,8 @@ namespace obe::Animation
             m_feedInstructions = true;
             m_sleep = currentCommand.at("time");
         }
-        else if (currentCommand.at("command").as_string() == Config::Templates::play_group_command)
+        else if (currentCommand.at("command").as_string()
+            == Config::Templates::play_group_command)
         {
             if (!m_currentGroupName.empty())
                 m_groups[m_currentGroupName]->reset();
@@ -183,7 +189,8 @@ namespace obe::Animation
             m_currentGroupName = currentCommand.at("group");
             m_groups[m_currentGroupName]->setLoops(currentCommand.at("repeat"));
         }
-        else if (currentCommand.at("command").as_string() == Config::Templates::set_animation_command)
+        else if (currentCommand.at("command").as_string()
+            == Config::Templates::set_animation_command)
         {
             m_feedInstructions = false;
             m_status = AnimationStatus::Call;
@@ -223,8 +230,8 @@ namespace obe::Animation
                     "    <Animation> Animation '{}' has no more code to execute");
                 if (m_parent.m_playMode == AnimationPlayMode::OneTime)
                 {
-                    Debug::Log->trace(
-                        "    <Animation> Animation '{}' will stay on the last texture");
+                    Debug::Log->trace("    <Animation> Animation '{}' will stay on "
+                                      "the last texture");
                     m_groups[m_currentGroupName]->previous(true);
                     m_over = true;
                 }
@@ -253,6 +260,7 @@ namespace obe::Animation
     void Animation::loadMeta(const vili::node& meta)
     {
         m_name = meta.at("name");
+
         Debug::Log->trace("    <Animation> Animation name = '{}'", m_name);
         if (meta.contains("clock"))
         {
@@ -277,27 +285,27 @@ namespace obe::Animation
             Debug::Log->trace(
                 "    <Animation> Using following template to load images : {}", model);
         }
-        for (std::size_t i = 0; i < imageList.size(); i++)
+        for (auto& image : imageList)
         {
             std::string textureName;
-            if (imageList.at(i).is<vili::integer>() && !model.empty())
+            if (image.is<vili::integer>() && !model.empty())
             {
                 textureName = Utils::String::replace(
-                    model, "%s", std::to_string(imageList.at(i).as<vili::integer>()));
+                    model, "%s", std::to_string(image.as<vili::integer>()));
                 Debug::Log->trace("    <Animation> Loading image '{}' (name determined "
                                   "with template[int])",
                     textureName);
             }
-            else if (imageList.at(i).is<vili::string>() && !model.empty())
+            else if (image.is<vili::string>() && !model.empty())
             {
-                textureName = Utils::String::replace(model, "%s", imageList.at(i));
+                textureName = Utils::String::replace(model, "%s", image);
                 Debug::Log->trace("    <Animation> Loading image '{}' (name determined "
                                   "with template[str])",
                     textureName);
             }
-            else if (imageList.at(i).is<vili::string>())
+            else if (image.is<vili::string>())
             {
-                textureName = imageList.at(i);
+                textureName = image;
                 Debug::Log->trace("    <Animation> Loading image '{}'", textureName);
             }
 
@@ -309,8 +317,8 @@ namespace obe::Animation
                 Debug::Log->trace(
                     "    <Animation> Loading Texture {0} (using ResourceManager)",
                     textureName);
-                m_textures.emplace_back(resources->getTexture(
-                    path.add(textureName), m_antiAliasing));
+                m_textures.emplace_back(
+                    resources->getTexture(path.add(textureName), m_antiAliasing));
             }
             else
             {
@@ -362,7 +370,8 @@ namespace obe::Animation
         }
     }
 
-    Animation::Animation() : m_defaultState(*this)
+    Animation::Animation()
+        : m_defaultState(*this)
     {
     }
 
@@ -383,7 +392,8 @@ namespace obe::Animation
             {
                 m_clock = Time::epoch();
                 m_sleep = 0;
-                Debug::Log->trace("<Animation> Updating Animation '{0}'", m_parent.m_name);
+                Debug::Log->trace(
+                    "<Animation> Updating Animation '{0}'", m_parent.m_name);
 
                 if (m_feedInstructions)
                 {

@@ -2,15 +2,17 @@ local Color = require("Lib/StdLib/ConsoleColor");
 local Route = require("Lib/Toolkit/Route");
 local Style = require("Lib/Toolkit/Stylesheet");
 
-function help()
+local Commands = {};
+
+function Commands.help()
     Color.print({
         { text = "Available commands : ", color = Style.Execute}
     }, 1);
     for k, v in pairs(ToolkitFunctions) do
-        local commandHelp = "";
+        local command_help = "";
         for khelp, vhelp in pairs(v.Routes) do
             if vhelp.type == "Help" then
-                commandHelp = vhelp.help;
+                command_help = vhelp.help;
                 break;
             end
         end
@@ -18,17 +20,14 @@ function help()
             { text = "> ", color = Style.Default},
             { text = k, color = Style.Command},
             { text = " : ", color = Style.Default},
-            { text = commandHelp, color = Style.Help}
+            { text = command_help, color = Style.Help}
         }, 2);
     end
 end
 
 return {
-    Functions = {
-        help = help
-    },
     Routes = {
-        Route.Call("help");
+        Route.Call(Commands.help);
         Route.Help("Well, it.. helps you ?");
     }
 };

@@ -82,6 +82,10 @@ namespace obe::System
          */
         static void Unmount(MountablePath path);
         /**
+         * \brief Remove all Paths from Mounted Paths
+         */
+        static void UnmountAll();
+        /**
          * \brief All the Mounted Paths
          */
         static const std::vector<MountablePath>& Paths();

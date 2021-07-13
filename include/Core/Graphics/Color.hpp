@@ -21,7 +21,6 @@ namespace obe::Graphics
         Color();
         Color(double r, double g, double b, double a = 255);
         explicit Color(const std::string& nameOrHex);
-        Color(const Color& color);
         Color(const sf::Color& color);
 
         void fromString(std::string string);
@@ -31,6 +30,8 @@ namespace obe::Graphics
         void fromHsv(int H, double S, double V);
 
         [[nodiscard]] uint32_t toInteger() const;
+        [[nodiscard]] std::string toHex() const;
+        [[nodiscard]] std::string toName() const;
 
         bool operator==(const Color& color) const;
         bool operator!=(const Color& color) const;

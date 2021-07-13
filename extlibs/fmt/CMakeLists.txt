@@ -4,6 +4,7 @@ file(GLOB FMT_HEADERS include/fmt/*.h)
 file(GLOB FMT_SOURCES src/*.cc)
 
 add_library(fmt ${FMT_HEADERS} ${FMT_SOURCES})
+add_library(fmt::fmt ALIAS fmt)
 
 target_include_directories(fmt
     PUBLIC 

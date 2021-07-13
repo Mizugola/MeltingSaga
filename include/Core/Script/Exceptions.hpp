@@ -15,8 +15,8 @@ namespace obe::Script::Exceptions
             std::string_view objectId, DebugInfo info)
             : Exception("NoSuchComponent", info)
         {
-            this->error("GameObject '{}' (type: '{}') has no {} component", objectType,
-                objectId, componentType);
+            this->error("GameObject '{}' (type: '{}') has no {} component", objectId,
+                objectType, componentType);
             this->hint("Try to check in the {}.obj.vili if you correctly created the "
                        "{} section",
                 objectType, componentType);

@@ -25,9 +25,10 @@ namespace obe::Scene
             m_renderCache.insert(
                 m_renderCache.end(), tileLayers.begin(), tileLayers.end());
         }
-        
+
         std::sort(m_renderCache.begin(), m_renderCache.end(),
-            [](const auto& renderable1, const auto& renderable2) {
+            [](const auto& renderable1, const auto& renderable2)
+            {
                 if (renderable1->getLayer() == renderable2->getLayer())
                 {
                     return renderable1->getZDepth() > renderable2->getZDepth();
@@ -202,22 +203,19 @@ namespace obe::Scene
                 gameObject->deleteObject();
             }
         }
-        for (auto& gameObject : m_gameObjectArray)
-        {
-
-        }
+        for (auto& gameObject : m_gameObjectArray) { }
         Debug::Log->debug("<Scene> Cleaning GameObject Array");
         m_gameObjectArray.erase(
             std::remove_if(m_gameObjectArray.begin(), m_gameObjectArray.end(),
-                [](const std::unique_ptr<Script::GameObject>& ptr) {
-                    return (!ptr->isPermanent());
-                }),
+                [](const std::unique_ptr<Script::GameObject>& ptr)
+                { return (!ptr->isPermanent()); }),
             m_gameObjectArray.end());
         // Required for the next doesGameObjectExists
         this->_rebuildIds();
         Debug::Log->debug("<Scene> Cleaning Sprite Array");
         m_spriteArray.erase(std::remove_if(m_spriteArray.begin(), m_spriteArray.end(),
-                                [this](const std::unique_ptr<Graphics::Sprite>& ptr) {
+                                [this](const std::unique_ptr<Graphics::Sprite>& ptr)
+                                {
                                     if (!ptr->getParentId().empty()
                                         && this->doesGameObjectExists(ptr->getParentId()))
                                         return false;
@@ -227,7 +225,8 @@ namespace obe::Scene
         Debug::Log->debug("<Scene> Cleaning Sprite Array");
         m_colliderArray.erase(
             std::remove_if(m_colliderArray.begin(), m_colliderArray.end(),
-                [this](const std::unique_ptr<Collision::PolygonalCollider>& ptr) {
+                [this](const std::unique_ptr<Collision::PolygonalCollider>& ptr)
+                {
                     if (!ptr->getParentId().empty()
                         && this->doesGameObjectExists(ptr->getParentId()))
                         return false;
@@ -394,7 +393,6 @@ namespace obe::Scene
                         Script::GameObjectDatabase::ApplyRequirements(
                             newObject.getEnvironment(), objectRequirements);
                     }
-                    // newObject.exec("LuaCore.InjectInitInjectionTable()");
                 }
                 else if (!this->getGameObject(gameObjectId).isPermanent())
                 {
@@ -475,7 +473,8 @@ namespace obe::Scene
             }
             m_gameObjectArray.erase(
                 std::remove_if(m_gameObjectArray.begin(), m_gameObjectArray.end(),
-                    [this](const std::unique_ptr<Script::GameObject>& ptr) {
+                    [this](const std::unique_ptr<Script::GameObject>& ptr)
+                    {
                         if (ptr->deletable)
                         {
                             Debug::Log->debug(
@@ -569,7 +568,6 @@ namespace obe::Scene
         std::vector<Collision::PolygonalCollider*> allColliders;
         for (const auto& collider : m_colliderArray)
             allColliders.push_back(collider.get());
-        Debug::Log->info("All colliders : {}", allColliders.size());
         return allColliders;
     }
 
@@ -612,9 +610,8 @@ namespace obe::Scene
     {
         m_gameObjectArray.erase(
             std::remove_if(m_gameObjectArray.begin(), m_gameObjectArray.end(),
-                [&id](const std::unique_ptr<Script::GameObject>& ptr) {
-                    return (ptr->getId() == id);
-                }),
+                [&id](const std::unique_ptr<Script::GameObject>& ptr)
+                { return (ptr->getId() == id); }),
             m_gameObjectArray.end());
         m_gameObjectIds.erase(id);
     }
@@ -625,8 +622,8 @@ namespace obe::Scene
         std::vector<Script::GameObject*> returnVec;
         for (auto& gameObject : m_gameObjectArray)
         {
-            if (!gameObject->deletable && (objectType.empty()
-                || objectType == gameObject->getType()))
+            if (!gameObject->deletable
+                && (objectType.empty() || objectType == gameObject->getType()))
                 returnVec.push_back(gameObject.get());
         }
         return returnVec;
@@ -766,9 +763,8 @@ namespace obe::Scene
     {
         Debug::Log->debug("<Scene> Removing Sprite {0}", id);
         m_spriteArray.erase(std::remove_if(m_spriteArray.begin(), m_spriteArray.end(),
-                                [&id](std::unique_ptr<Graphics::Sprite>& Sprite) {
-                                    return (Sprite->getId() == id);
-                                }),
+                                [&id](std::unique_ptr<Graphics::Sprite>& Sprite)
+                                { return (Sprite->getId() == id); }),
             m_spriteArray.end());
         m_spriteIds.erase(id);
     }
@@ -875,9 +871,8 @@ namespace obe::Scene
     {
         m_colliderArray.erase(
             std::remove_if(m_colliderArray.begin(), m_colliderArray.end(),
-                [&id](std::unique_ptr<Collision::PolygonalCollider>& collider) {
-                    return (collider->getId() == id);
-                }),
+                [&id](std::unique_ptr<Collision::PolygonalCollider>& collider)
+                { return (collider->getId() == id); }),
             m_colliderArray.end());
         m_colliderIds.erase(id);
     }

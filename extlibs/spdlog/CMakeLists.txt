@@ -9,6 +9,8 @@ file(GLOB SPDLOG_HEADERS
 file(GLOB SPDLOG_SOURCES src/*.cpp)
 
 add_library(spdlog ${SPDLOG_HEADERS} ${SPDLOG_SOURCES})
+add_library(spdlog::spdlog ALIAS spdlog)
+
 target_compile_definitions(spdlog PUBLIC SPDLOG_FMT_EXTERNAL)
 target_compile_definitions(spdlog PUBLIC SPDLOG_COMPILED_LIB)
 target_link_libraries(spdlog PUBLIC fmt)

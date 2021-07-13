@@ -17,7 +17,6 @@ namespace obe
     void InitEngine(unsigned int surfaceWidth, unsigned int surfaceHeight)
     {
         Debug::InitLogger();
-        Debug::Log->debug("<ObEngine> Storing Obe.vili in cache");
 
         Debug::Log->info("Using ObEngineCore (Version : {} ({}:{}))",
             Config::OBENGINE_VERSION, Config::OBENGINE_GIT_BRANCH,

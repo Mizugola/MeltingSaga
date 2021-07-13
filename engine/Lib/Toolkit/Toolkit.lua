@@ -7,13 +7,19 @@ local Table = require("Lib/StdLib/Table");
 
 local currentExecution;
 
+local fs = obe.Utils.File;
+
 -- Load all Toolkit functions located in Lib/Toolkit/Functions
 function loadToolkitFunctions()
-    local fileList = obe.Filesystem.getFileList("Lib/Toolkit/Functions");
+    local toolkitFunctionsDirectory = obe.System.Path("obe://Lib/Toolkit/Functions"):find(obe.System.PathType.Directory);
+    local fileList = fs.getFileList(toolkitFunctionsDirectory:path());
     local allFunctions = {};
     for _, content in pairs(fileList) do
-        print("Loading Toolkit function :", "Lib/Toolkit/Functions/", content);
-        allFunctions[String.split(content, ".")[1]] = require("Lib/Toolkit/Functions/" .. String.split(content, ".")[1]);
+        -- print("Loading Toolkit function :", "Lib/Toolkit/Functions/", content);
+        allFunctions[String.split(content, ".")[1]] = require(
+                                                          "Lib/Toolkit/Functions/" ..
+                                                              String.split(
+                                                                  content, ".")[1]);
     end
     return allFunctions;
 end
@@ -31,10 +37,12 @@ end
 function matchCommandArgumentType(content, value)
     if content.type == "Argument" then
         -- Argument type matching
-        if (content.argType == "any")
-        or (content.argType == "number" and tonumber(value) ~= nil)
-        or (content.argType == "boolean" and (value == "true" or value == "false"))
-        or (content.argType == "string" and (tonumber(value) == nil and value ~= "false" and value ~= true)) then
+        if (content.argType == "any") or
+            (content.argType == "number" and tonumber(value) ~= nil) or
+            (content.argType == "boolean" and
+                (value == "true" or value == "false")) or
+            (content.argType == "string" and
+                (tonumber(value) == nil and value ~= "false" and value ~= true)) then
             return true;
         end
     end
@@ -65,11 +73,11 @@ function getBiggestCommonRoot(baseWord, completionWords)
                 baseLetter = content:sub(#baseWord + 1, #baseWord + 1);
             elseif content:sub(#baseWord + 1, #baseWord + 1) ~= baseLetter then
                 completed = false;
-                break;
+                break
             end
         else
             completed = false;
-            break;
+            break
         end
     end
     if completed == true then
@@ -100,7 +108,12 @@ function splitCommandAndArgs(command)
         table.insert(commandArgs, "");
         strArgs = strArgs .. " ";
     end
-    return { name = commandName, args = commandArgs, full = command, strArgs = strArgs };
+    return {
+        name = commandName,
+        args = commandArgs,
+        full = command,
+        strArgs = strArgs
+    };
 end
 
 -- Find if the command name does not match any other commands
@@ -120,9 +133,15 @@ function printHelp(arg)
     table.insert(helpParts, {text = command.name .. " ", color = Style.Command});
     for i = 1, #command.args do
         if i == #command.args then
-            table.insert(helpParts, {text = command.args[i] .. " ", color = Style.Workspace})
+            table.insert(helpParts, {
+                text = command.args[i] .. " ",
+                color = Style.Workspace
+            })
         else
-            table.insert(helpParts, {text = command.args[i] .. " ", color = Style.Argument});
+            table.insert(helpParts, {
+                text = command.args[i] .. " ",
+                color = Style.Argument
+            });
         end
     end
     table.insert(helpParts, {text = ": ", color = Style.Default});
@@ -134,9 +153,7 @@ end
 function getHelp(arg)
     if type(arg) == "table" then
         for _, child in pairs(arg) do
-            if child.type == "Help" then
-                return child.help;
-            end
+            if child.type == "Help" then return child.help; end
         end
     elseif type(arg) == "string" then
         local command = splitCommandAndArgs(arg);
@@ -169,11 +186,7 @@ end
 -- Builds a new command execution
 function buildCommandExecution(func, args)
     local autocomplete = {
-        value = {
-            func = function()
-                print("Called autocomplete");
-            end
-        }
+        value = {func = function() print("Called autocomplete"); end}
     };
     args["autocomplete"] = autocomplete;
     local ArgMirror = require('obe://Lib/Internal/ArgMirror');
@@ -182,6 +195,9 @@ function buildCommandExecution(func, args)
     local callArgs = {};
     -- We create a table containing arguments of the function at the correct index
     for _, arg in pairs(argList) do
+        if args[arg] == nil then
+            error("Command does not take any parameter named '" .. arg .. "'");
+        end
         table.insert(callArgs, args[arg].value);
     end
     local exec = coroutine.create(function()
@@ -189,7 +205,11 @@ function buildCommandExecution(func, args)
             func(ArgMirror.Unpack(callArgs));
         end);
         local ok, msg = coroutine.resume(subroutine);
-        if not ok then error(msg); end
+        if not ok then
+            print(msg);
+            print(debug.traceback(subroutine))
+            error(msg);
+        end
         local sendBuffer;
         while checkCommandExecutionState(subroutine) do
             local wakeType, input = coroutine.yield(sendBuffer);
@@ -230,9 +250,7 @@ function autocompleteArgs(command, query)
     local entries = 0;
     local subpath = {};
     for _, content in pairs(path) do
-        if entries ~= 0 then
-            table.insert(subpath, content);
-        end
+        if entries ~= 0 then table.insert(subpath, content); end
         entries = entries + 1;
     end
     table.insert(subpath, start);
@@ -244,7 +262,7 @@ function autocompleteArgs(command, query)
             if content.type == "Node" and id == path[1] then
                 -- We found a Node that matches the id
                 recurseIn = content;
-                break;
+                break
             elseif matchCommandArgumentType(content, path[1]) then
                 -- We found an Argument that matches the type
                 recurseIn = content;
@@ -252,7 +270,8 @@ function autocompleteArgs(command, query)
         end
         if recurseIn then
             -- If we find a Node / Argument that matches criterias
-            return autocompleteArgs(recurseIn.children, pl.List(subpath):join(" "));
+            return autocompleteArgs(recurseIn.children,
+                                    pl.List(subpath):join(" "));
         else
             -- If no Node / Argument were found
             return {};
@@ -266,7 +285,8 @@ function autocompleteArgs(command, query)
             if arg.type == "Node" then
                 -- If we found a Node and the beginning of the current argument value matches the id of the node
                 arg.name = id;
-                if start ~= nil and string.sub(id, 1, string.len(start)) == start then
+                if start ~= nil and string.sub(id, 1, string.len(start)) ==
+                    start then
                     table.insert(arglist, arg);
                 elseif start == nil then
                     table.insert(arglist, arg);
@@ -281,7 +301,7 @@ function autocompleteArgs(command, query)
                     if searchFunction.type == "Autocomplete" then
                         -- We store the function for later use
                         autocompleteFunction = searchFunction.ref;
-                        break;
+                        break
                     end
                 end
                 -- If we found an autocomplete function in the Argument children
@@ -291,14 +311,16 @@ function autocompleteArgs(command, query)
                     -- We build a table containing all the suggestions returned by the function
                     for _, content in pairs(autocompleteResult) do
                         -- If the part of the last argument matches the beginning of the current completion
-                        if start ~= nil and content:sub(1, string.len(start)) == start then
+                        if start ~= nil and content:sub(1, string.len(start)) ==
+                            start then
                             -- We insert it into suggestions
                             table.insert(arglist, {
                                 children = {
                                     {
                                         type = "Help",
-                                        help = "Argument suggestion for <" .. id .. "> parameter"
-                                        .. "\n            (" .. getHelp(arg.children) .. ")"
+                                        help = "Argument suggestion for <" .. id ..
+                                            "> parameter" .. "\n            (" ..
+                                            getHelp(arg.children) .. ")"
                                     }
                                 },
                                 type = "Node",
@@ -310,8 +332,9 @@ function autocompleteArgs(command, query)
                                 children = {
                                     {
                                         type = "Help",
-                                        help = "Argument suggestion for <" .. id .. "> parameter"
-                                        .. "\n            (" .. getHelp(arg.children) .. ")"
+                                        help = "Argument suggestion for <" .. id ..
+                                            "> parameter" .. "\n            (" ..
+                                            getHelp(arg.children) .. ")"
                                     }
                                 },
                                 type = "Node",
@@ -325,16 +348,9 @@ function autocompleteArgs(command, query)
                     if getHelp(arg.children) ~= "" then
                         defaultHelp = getHelp(arg.children);
                     end
-                    table.insert(
-                        arglist,
-                        {
-                            children = {
-                                {
-                                    type = "Help",
-                                    help = defaultHelp
-                                }
-                            },
-                            name = "<" .. id .. ">"
+                    table.insert(arglist, {
+                        children = {{type = "Help", help = defaultHelp}},
+                        name = "<" .. id .. ">"
                     });
                 end
             end
@@ -351,11 +367,14 @@ function autocompleteHandle(command)
         -- If we find the command in available Toolkit functions
         if ToolkitFunctions[command.name] then
             -- We try to autocomplete the arguments
-            local completions = autocompleteArgs(ToolkitFunctions[command.name].Routes, command.strArgs);
+            local completions = autocompleteArgs(
+                                    ToolkitFunctions[command.name].Routes,
+                                    command.strArgs);
             -- We remove
             local nodesOnly = {};
             for _, v in pairs(completions) do
-                if v.type == "Node" and v.name:sub(1, 1) ~= "<" and v.name:sub(#v.name, #v.name) ~= ">" then
+                if v.type == "Node" and v.name:sub(1, 1) ~= "<" and
+                    v.name:sub(#v.name, #v.name) ~= ">" then
                     nodesOnly[v.name] = v;
                 end
             end
@@ -363,25 +382,31 @@ function autocompleteHandle(command)
             if Table.getSize(completionKeys) == 1 then
                 -- Only one completion found, complete and add space (if not a variable)
                 local onlyCompletion = completionKeys[1];
-                if onlyCompletion:sub(1, 1) == "<" and onlyCompletion:sub(#onlyCompletion, #onlyCompletion) == ">" then
+                if onlyCompletion:sub(1, 1) == "<" and
+                    onlyCompletion:sub(#onlyCompletion, #onlyCompletion) == ">" then
                     -- Variable Parameter, do nothing
                 else
                     -- If the last character of the autocompleteResult is a space
-                    while autocompleteResult:sub(#autocompleteResult, #autocompleteResult) ~= " " do
+                    while autocompleteResult:sub(#autocompleteResult,
+                                                 #autocompleteResult) ~= " " do
                         -- We remove that space
                         autocompleteResult = autocompleteResult:sub(1, -2);
                     end
                     -- We set the autocompleteResult to what should be in the inputbox
-                    autocompleteResult = autocompleteResult .. completionKeys[1] .. " ";
+                    autocompleteResult =
+                        autocompleteResult .. completionKeys[1] .. " ";
                 end
             elseif Table.getSize(completionKeys) > 1 then
                 -- Multiple completions found, completing with biggest common root
                 -- We remove that trailing space
-                while autocompleteResult:sub(#autocompleteResult, #autocompleteResult) ~= " " do
+                while autocompleteResult:sub(#autocompleteResult,
+                                             #autocompleteResult) ~= " " do
                     autocompleteResult = autocompleteResult:sub(1, -2);
                 end
                 -- We complete as much as we can based on the common root of available completions
-                local commonRoot = getBiggestCommonRoot(command.args[#command.args], completionKeys);
+                local commonRoot = getBiggestCommonRoot(
+                                       command.args[#command.args],
+                                       completionKeys);
                 autocompleteResult = autocompleteResult .. commonRoot;
             end
         end
@@ -398,14 +423,15 @@ function getMatchingToolkingFunctions(command)
 
     -- Get all commands that match input and get the common root of all commands
     -- For example, common root of command "reset" and "restore" is "res"
-    local longestPossibleCompletion = getBiggestCommonRoot(command.full, excludeNonMatchingWords(command.full, allFunctions));
+    local longestPossibleCompletion = getBiggestCommonRoot(command.full,
+                                                           excludeNonMatchingWords(
+                                                               command.full,
+                                                               allFunctions));
 
     -- Fill input with common root
     if #longestPossibleCompletion ~= #command.full then
         _term_write(longestPossibleCompletion:sub(#command.full + 1));
-        if isUniqueValidCommand(command) then
-            _term_write(" ");
-        end
+        if isUniqueValidCommand(command) then _term_write(" "); end
     end
 
     -- Display all possibilities
@@ -436,8 +462,11 @@ function autocomplete(input)
                 -- We call autocompleteHandle to get what text should replace the input
                 local checkCurrentInput = autocompleteHandle(command);
                 -- We always show all suggestions
-                local completions = autocompleteArgs(ToolkitFunctions[command.name].Routes, command.strArgs);
-                if Table.getSize(completions) == 1 and completions[1].name == command.args[#command.args] then
+                local completions = autocompleteArgs(
+                                        ToolkitFunctions[command.name].Routes,
+                                        command.strArgs);
+                if Table.getSize(completions) == 1 and completions[1].name ==
+                    command.args[#command.args] then
                     input = input .. " ";
                     _term_write(" ");
                 else
@@ -447,7 +476,10 @@ function autocomplete(input)
                             {text = "> ", color = Style.Default},
                             {text = completion.name, color = Style.Argument},
                             {text = " : ", color = Style.Default},
-                            {text = getHelp(completion.children), color = Style.Help}
+                            {
+                                text = getHelp(completion.children),
+                                color = Style.Help
+                            }
                         }, 2);
                     end
                 end
@@ -475,7 +507,8 @@ function autocomplete(input)
             getMatchingToolkingFunctions(command);
         end
     else
-        local status, completions = coroutine.resume(currentExecution, "autocomplete", input);
+        local status, completions = coroutine.resume(currentExecution,
+                                                     "autocomplete", input);
         if completions ~= nil and type(completions) == "table" then
             local validCompletions = {};
             local completionsInfos = {};
@@ -546,7 +579,7 @@ function reachNode(command, branch, args)
             if content.type == "Node" and id == nextJump then
                 -- We store the Node that will be used
                 recurseIn = content;
-                break;
+                break
             end
         end
         -- If the current argument did not match a "Node" argument before
@@ -558,7 +591,7 @@ function reachNode(command, branch, args)
                 if matchCommandArgumentType(content, nextJump) then
                     -- We store the Argument that will be used
                     recurseIn = content;
-                    break;
+                    break
                 end
             end
         end
@@ -607,8 +640,11 @@ function reachCommand(command, branch, args, idargs)
                 -- We store the Node that will be used
                 recurseIn = content;
                 -- We also store it as an identified argument
-                identifiedArgs[id] = { index = Table.getSize(identifiedArgs), type = "Node" };
-                break;
+                identifiedArgs[id] = {
+                    index = Table.getSize(identifiedArgs),
+                    type = "Node"
+                };
+                break
             end
         end
         -- If the current argument did not match a "Node" argument before
@@ -626,7 +662,7 @@ function reachCommand(command, branch, args, idargs)
                         type = "Argument",
                         argType = content.argType
                     };
-                    break;
+                    break
                 end
             end
         end
@@ -650,26 +686,11 @@ function reachCommand(command, branch, args, idargs)
             if content.type == "Call" then
                 -- We copy the Node for later use
                 futureCall = copy(content);
-                break;
+                break
             end
         end
         -- If we find a callable function
         if futureCall then
-            -- If the function is a reference (name of the function)
-            if futureCall.calltype == "Ref" then
-                -- We get it from Functions table of the command
-                if ToolkitFunctions[command].Functions[futureCall.ref] then
-                    futureCall.ref = ToolkitFunctions[command].Functions[futureCall.ref];
-                else
-                    Color.print({
-                        {text = "Bad reference to function ", color = Style.Error},
-                        {text = futureCall.ref, color = Style.Argument},
-                        {text = " for command ", color = Style.Error},
-                        {text = command, color = Style.Command}
-                    }, 1);
-                    futureCall.ref = nil;
-                end
-            end
             return futureCall.ref, identifiedArgs;
         else
             -- No callable function found
@@ -692,24 +713,29 @@ function evaluate(input)
         if ToolkitFunctions[command.name] then
             -- We try to retrieve the function to call from command name
             -- We also retrieve the command excepted arguments (name, index and type (Node / Argument))
-            local callFunction, identifiedArgs = reachCommand(command.name, {
-                id = "{root}",
-                children = ToolkitFunctions[command.name].Routes
-            }, command.args);
+            local callFunction, identifiedArgs =
+                reachCommand(command.name, {
+                    id = "{root}",
+                    children = ToolkitFunctions[command.name].Routes
+                }, command.args);
             -- If the function to call has been found and arguments has been identified
             if callFunction and identifiedArgs then
                 -- For all arguments of the command
                 for key, content in pairs(identifiedArgs) do
                     if content.type == "Node" then
                         -- If the argument is a "Node", the argument value will be the name of the next Node / Argument
-                        identifiedArgs[key].value = Table.getKeyAtIndex(identifiedArgs, content.index + 1);
+                        identifiedArgs[key].value =
+                            Table.getKeyAtIndex(identifiedArgs,
+                                                content.index + 1);
                     elseif content.type == "Argument" then
                         -- Otherwise, if the argument is an "Argument", we just fetch the value from user input
-                        identifiedArgs[key].value = command.args[content.index + 1];
+                        identifiedArgs[key].value =
+                            command.args[content.index + 1];
                     end
                 end
                 -- We call the function and we unpack arguments
-                currentExecution = buildCommandExecution(callFunction, identifiedArgs);
+                currentExecution = buildCommandExecution(callFunction,
+                                                         identifiedArgs);
                 if coroutine.status(currentExecution) == "dead" then
                     currentExecution = nil;
                 end
@@ -733,8 +759,11 @@ end
 -- Loading functions of the toolkit
 ToolkitFunctions = loadToolkitFunctions();
 -- Displaying start message
-Color.print({
+--[[Color.print({
     {text = "@", color = Style.Boot.At},
     {text = "ObEngine Toolkit ", color = Style.Boot.Text},
-    {text = " (v1.0)", color = Style.Boot.Version}
-});
+    {
+        text = " (" .. obe.Config.OBENGINE_VERSION .. ")",
+        color = Style.Boot.Version
+    }
+});]]

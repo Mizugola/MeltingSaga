@@ -30,7 +30,6 @@ namespace obe::Debug
         Log->set_pattern("[%H:%M:%S.%e]<%^%l%$> : %v");
         Log->set_level(spdlog::level::info);
         Log->flush_on(spdlog::level::warn);
-        Log->info("Logger initialized");
     }
 
     void trace(const std::string& content)

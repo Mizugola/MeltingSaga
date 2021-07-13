@@ -38,11 +38,6 @@ namespace obe::Transform
         assert(refY >= -1 && refY <= 1);
     }
 
-    Referential::Referential(const Referential& ref)
-    {
-        m_refX = ref.m_refX;
-        m_refY = ref.m_refY;
-    }
 
     bool Referential::operator==(const Referential& ref) const
     {

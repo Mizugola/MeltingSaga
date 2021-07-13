@@ -39,15 +39,11 @@ return {
     end,
 
     Call = function(func)
-        local calltype;
-        if (type(func) == "string") then
-            calltype = "Ref";
-        elseif (type(func) == "function") then
-            calltype = "Direct";
+        if type(func) ~= "function" then
+            error("argument to Route.Call must be a function (got " .. tostring(func) .. ")");
         end
         return {
             type = "Call",
-            calltype = calltype,
             ref = func
         };
     end,

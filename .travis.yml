@@ -13,13 +13,8 @@ addons:
     packages:
     - g++-7
     - libfreetype6-dev
-    - libjpeg-dev
     - libx11-dev
     - libxrandr-dev
-    - libxcb1-dev
-    - libx11-xcb-dev
-    - libxcb-randr0-dev
-    - libxcb-image0-dev
     - libgl1-mesa-dev
     - libflac-dev
     - libogg-dev
@@ -33,7 +28,6 @@ addons:
     - libgcc1
     - libglew-dev
     - libgpgme11-dev
-    - libsndfile1-dev
     - libudev-dev
     - libasound2-dev
 
@@ -42,14 +36,14 @@ before_script:
 - mkdir -p ${BUILD_PKG} && cd ${BUILD_PKG}
 - echo "Installing cmake..."
 - |
-  if [ ! -d "cmake-3.10.0-rc4/" ]; then
-    wget -nv https://cmake.org/files/v3.10/cmake-3.10.0-rc4.tar.gz
-    tar xzf cmake-3.10.0-rc4.tar.gz
-    cd cmake-3.10.0-rc4/
+  if [ ! -d "cmake-3.16.9/" ]; then
+    wget -nv https://cmake.org/files/v3.16/cmake-3.16.9.tar.gz
+    tar xzf cmake-3.16.9.tar.gz
+    cd cmake-3.16.9/
     ./bootstrap > /dev/null
     make -j$(nproc) > /dev/null
   else
-    cd cmake-3.10.0-rc4/
+    cd cmake-3.16.9/
     echo "cmake build cache found"
   fi
 - sudo make install > /dev/null
@@ -58,16 +52,16 @@ before_script:
 - cd ${BUILD_PKG}
 - echo "Installing SFML..."
 - |
-  if [ ! -d "SFML-2.5.0" ]; then
-    wget -nv https://www.sfml-dev.org/files/SFML-2.5.0-sources.zip
-    unzip -qq SFML-2.5.0-sources.zip
-    mkdir -p SFML-2.5.0/build/
-    cd SFML-2.5.0/build
+  if [ ! -d "SFML-2.5.1" ]; then
+    wget -nv https://www.sfml-dev.org/files/SFML-2.5.1-sources.zip
+    unzip -qq SFML-2.5.1-sources.zip
+    mkdir -p SFML-2.5.1/build/
+    cd SFML-2.5.1/build
     /usr/local/bin/cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=TRUE .. > /dev/null
     make -j$(nproc) > /dev/null
   else
     echo "SFML build cache found"
-    cd SFML-2.5.0/build
+    cd SFML-2.5.1/build
   fi
 - sudo make install > /dev/null
 - sudo ldconfig
@@ -86,7 +80,6 @@ before_deploy:
 - ls
 - ls ../
 - mv ../engine release
-- mv src/Dev/ObEngineDev release/ObEngineDev
 - mv src/Player/ObEnginePlayer release/ObEnginePlayer
 - tar -zcvf obengine-linux.tar.gz release
 - cd ..
@@ -104,5 +97,4 @@ before_deploy:
 #  target_commitish: $TRAVIS_COMMIT
 #  tag_name: obengine-unstable-linux
 #  on:
-#    repo: Sygmei/ObEngine
-branch: master
+#    repo: ObEngine/ObEngine

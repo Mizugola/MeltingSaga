@@ -35,20 +35,20 @@ local Quests = {
         end
     }
 };
-function getQuestsNames()
-    local questsNames = {};
+local function get_quests_names()
+    local quests_names = {};
     for id, _ in pairs(Quests) do
-        table.insert(questsNames, id);
+        table.insert(quests_names, id);
     end
-    return questsNames;
+    return quests_names;
 end
 
-local QuestFunctions = {};
+local Commands = {};
 
-function QuestFunctions.create(questName)
+function Commands.create(quest_name)
 end
 
-function QuestFunctions.list()
+function Commands.list()
     for id, quest in pairs(Quests) do
         Color.print({
             {text = "Quest (", color = Style.Default},
@@ -59,7 +59,7 @@ function QuestFunctions.list()
     end
 end
 
-function QuestFunctions.start(autocomplete, questName)
+function Commands.start(autocomplete, questName)
     if Quests[questName] then
         Quests[questName].quest(autocomplete);
     else
@@ -68,26 +68,25 @@ function QuestFunctions.start(autocomplete, questName)
 end
 
 return {
-    Functions = QuestFunctions,
     Routes = {
         Route.Help("Commands to work with Workloads");
         create = Route.Node {
             Route.Help("Creates a new Quest");
-            questName = Route.StringArg {
+            quest_name = Route.StringArg {
                 Route.Help("Name of the new Quest to create");
-                Route.Call("create");
+                Route.Call(Commands.create);
             };
         };
         list = Route.Node {
             Route.Help("Lists all available quests");
-            Route.Call("list");
+            Route.Call(Commands.list);
         };
         start = Route.Node {
             Route.Help("Indexes an existing Workload");
             questName = Route.Arg {
-                Route.Call("start");
+                Route.Call(Commands.start);
                 Route.Help("Name of the Quest you want to start");
-                Route.Autocomplete(getQuestsNames);
+                Route.Autocomplete(get_quests_names);
             };
         }
     }

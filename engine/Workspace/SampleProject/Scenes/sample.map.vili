@@ -1,0 +1,14 @@
+Meta:
+    name: "SampleScene"
+
+View:
+    size: 1.0
+    position:
+        x: 0.0
+        y: 0.0
+        unit: SceneUnits
+    referential: TopLeft
+
+GameObjects:
+    sampleGameObject:
+        type: "SampleObject"

@@ -33,6 +33,10 @@ namespace obe
         std::string m_message;
 
     public:
+        Exception(const Exception& e) noexcept
+        {
+            m_message = e.m_message;
+        }
         Exception(std::string id, DebugInfo info)
         {
             m_message = fmt::format("Exception [{}] occured\n", id);
@@ -43,7 +47,10 @@ namespace obe
         {
             const std::string errorMsg = fmt::format(std::forward<Args>(args)...);
             m_message += fmt::format("  Error: {}\n", errorMsg);
-            Debug::Log->error(m_message);
+            if (Debug::Log)
+            {
+                Debug::Log->error(m_message);
+            }
         }
         template <class... Args> void hint(Args&&... args)
         {
